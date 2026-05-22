@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Nutricional</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;}
+
+header{background:linear-gradient(135deg,#1a1f2e,#16213e);border-bottom:2px solid #2d6a4f;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+header h1{font-size:1.5rem;font-weight:700;}
+header h1 span{color:#52b788;}
+.meta{text-align:right;font-size:0.76rem;color:#94a3b8;line-height:1.7;}
+
+.stats{background:#1a1f2e;padding:12px 28px;display:flex;gap:10px;border-bottom:1px solid #2a2f3e;flex-wrap:wrap;}
+.stat{background:#0f1117;border:1px solid #2a2f3e;border-radius:10px;padding:9px 16px;flex:1;min-width:90px;text-align:center;}
+.stat .val{font-size:1.25rem;font-weight:700;color:#52b788;}
+.stat.p .val{color:#60a5fa;}.stat.g .val{color:#f59e0b;}.stat.c .val{color:#a78bfa;}
+.stat .lbl{font-size:0.64rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+
+.section-nav{display:flex;background:#111827;border-bottom:2px solid #1e293b;}
+.snav{padding:12px 24px;cursor:pointer;font-size:0.86rem;font-weight:600;color:#475569;border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;}
+.snav:hover{color:#94a3b8;}
+.snav.active{color:#52b788;border-bottom-color:#52b788;background:#0d1f14;}
+.snav.inbody-tab.active{color:#60a5fa;border-bottom-color:#60a5fa;background:#0d1525;}
+
+.week-nav{background:#1a1f2e;border-bottom:1px solid #2a2f3e;padding:14px 28px;}
+.wnav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;}
+.wnav-btn{background:#0f1117;border:1px solid #2a2f3e;border-radius:8px;color:#94a3b8;padding:7px 16px;cursor:pointer;font-size:0.83rem;font-family:inherit;transition:all .2s;}
+.wnav-btn:hover{background:#1e293b;color:#e2e8f0;}
+.wnav-btn.disabled{opacity:.3;cursor:default;pointer-events:none;}
+.wnav-center{text-align:center;}
+.wnav-title{font-size:1.15rem;font-weight:700;color:#fff;}
+.wnav-title span{color:#52b788;}
+.wnav-range{font-size:0.7rem;color:#64748b;margin-top:2px;}
+.wnav-overall{font-size:0.72rem;color:#52b788;margin-top:4px;font-weight:600;}
+.week-strip{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.week-strip::-webkit-scrollbar{display:none;}
+.wpill{display:flex;flex-direction:column;align-items:center;gap:3px;background:#0f1117;border:1.5px solid #1e293b;border-radius:9px;padding:6px 10px;cursor:pointer;min-width:52px;transition:all .2s;}
+.wpill.active{border-color:#2d6a4f;background:#0d1f14;}
+.wpill .wn{font-size:0.7rem;font-weight:700;color:#64748b;}
+.wpill.active .wn{color:#52b788;}
+.wpill .wp{font-size:0.6rem;color:#475569;}
+.wpill .wb{width:32px;height:4px;border-radius:2px;background:#1e293b;overflow:hidden;}
+.wpill .wbf{height:100%;border-radius:2px;}
+
+.tabs{display:flex;background:#1a1f2e;border-bottom:1px solid #2a2f3e;overflow-x:auto;padding:0 20px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:12px 14px;cursor:pointer;font-size:0.84rem;color:#64748b;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab:hover{color:#cbd5e1;}
+.tab.active{color:#52b788;border-bottom-color:#52b788;font-weight:600;}
+.tab .tdate{font-size:0.6rem;color:#475569;}
+.tab.active .tdate{color:#2d6a4f;}
+.tab .tdot{width:7px;height:7px;border-radius:50%;background:#1e293b;}
+
+.day-wrap{padding:22px 28px;max-width:1200px;margin:0 auto;display:none;}
+.day-wrap.active{display:block;}
+.day-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.day-title{font-size:1.2rem;font-weight:700;}
+.day-title .sub{font-size:0.85rem;font-weight:400;color:#475569;}
+.day-macros{display:flex;gap:12px;font-size:0.75rem;color:#94a3b8;flex-wrap:wrap;}
+.day-macros span{display:flex;align-items:center;gap:4px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.dot.k{background:#52b788;}.dot.p{background:#60a5fa;}.dot.g{background:#f59e0b;}.dot.c{background:#a78bfa;}
+.prog-wrap{margin-bottom:20px;}
+.prog-labels{display:flex;justify-content:space-between;font-size:0.75rem;color:#64748b;margin-bottom:6px;}
+.prog-pct{color:#52b788;font-weight:600;}
+.prog-track{background:#1a1f2e;border-radius:99px;height:12px;overflow:hidden;border:1px solid #2a2f3e;}
+.prog-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,#1b4332,#2d6a4f,#52b788);transition:width .4s ease;}
+
+.meals-grid{display:grid;gap:14px;}
+.meal-card{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;overflow:hidden;display:grid;grid-template-columns:130px 1fr;}
+.meal-img{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px;gap:8px;background:linear-gradient(160deg,var(--ca),var(--cb));}
+.meal-emoji{font-size:2.8rem;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));}
+.method-badge{background:rgba(0,0,0,.35);color:#fff;border-radius:20px;padding:3px 8px;font-size:0.58rem;text-align:center;text-transform:uppercase;letter-spacing:.06em;}
+.meal-body{padding:14px 16px;}
+.meal-cat{font-size:0.65rem;color:#52b788;text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
+.meal-time{font-size:0.68rem;color:#475569;margin-top:2px;margin-bottom:8px;}
+.variant-toggle{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.vpill{padding:5px 11px;border-radius:20px;font-size:0.7rem;font-weight:600;cursor:pointer;border:1.5px solid #2a2f3e;color:#64748b;background:#0f1117;transition:all .2s;user-select:none;}
+.vpill.active.especial{background:#1e3a2f;border-color:#2d6a4f;color:#52b788;}
+.vpill.active.comun{background:#1e2a3f;border-color:#2d4a6f;color:#60a5fa;}
+.cook-box{background:#0a0d14;border-left:3px solid #2d6a4f;border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:11px;}
+.cook-label{font-size:0.61rem;color:#52b788;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:3px;}
+.cook-text{font-size:0.77rem;color:#94a3b8;line-height:1.5;}
+.items-list{display:flex;flex-direction:column;gap:5px;}
+.item-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:#0f1117;cursor:pointer;transition:background .15s;user-select:none;}
+.item-row:hover{background:#141b27;}
+.item-row.checked .item-food{text-decoration:line-through;color:#334155;}
+.item-row.checked .item-qty,.item-row.checked .kcal-tag{opacity:.35;}
+.item-row.prot-row{border-left:2px solid #2d6a4f;}
+.chk{width:18px;height:18px;border-radius:5px;border:2px solid #2d6a4f;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.item-row.checked .chk{background:#2d6a4f;border-color:#52b788;}
+.chk-icon{display:none;color:#fff;font-size:11px;font-weight:700;}
+.item-row.checked .chk-icon{display:block;}
+.item-food{flex:1;font-size:0.81rem;color:#cbd5e1;}
+.item-qty{font-size:0.7rem;color:#475569;white-space:nowrap;}
+.kcal-tag{background:#1e3a2f;color:#52b788;padding:2px 6px;border-radius:4px;font-size:0.67rem;white-space:nowrap;}
+.ts-badge{display:none;align-items:center;background:#0d2119;border:1px solid #1b4332;color:#4ade80;border-radius:5px;padding:2px 6px;font-size:0.65rem;white-space:nowrap;flex-shrink:0;}
+.ts-badge.show{display:inline-flex;}
+
+.day-reg{margin-top:24px;border-top:1px solid #1e293b;padding-top:20px;}
+.reg-open-btn{width:100%;padding:13px;background:#0a0d14;border:1.5px dashed #2d6a4f;border-radius:12px;color:#52b788;font-size:0.86rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;}
+.reg-open-btn:hover{background:#0d1f14;border-color:#52b788;border-style:solid;}
+.reg-form-wrap{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;padding:20px;display:none;}
+.reg-form-title{font-size:0.92rem;font-weight:700;color:#52b788;margin-bottom:16px;}
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:12px;}
+.reg-field{display:flex;flex-direction:column;gap:4px;}
+.reg-field.full{grid-column:1/-1;}
+.reg-field label{font-size:0.66rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+.reg-field input,.reg-field select,.reg-field textarea{background:#0f1117;border:1px solid #2a2f3e;border-radius:8px;color:#e2e8f0;padding:8px 11px;font-size:0.82rem;font-family:inherit;outline:none;transition:border-color .15s;width:100%;}
+.reg-field input:focus,.reg-field select:focus,.reg-field textarea:focus{border-color:#2d6a4f;}
+.reg-field select option{background:#1a1f2e;}
+.reg-field textarea{resize:vertical;min-height:68px;}
+.reg-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;}
+.reg-cancel-btn{background:transparent;border:1px solid #374151;border-radius:8px;color:#64748b;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:0.82rem;transition:all .2s;}
+.reg-cancel-btn:hover{border-color:#52b788;color:#94a3b8;}
+.reg-save-btn{background:#2d6a4f;border:none;border-radius:8px;color:#fff;padding:8px 22px;cursor:pointer;font-family:inherit;font-size:0.82rem;font-weight:600;transition:all .2s;}
+.reg-save-btn:hover{background:#22543d;}
+.reg-sum-wrap{background:#1a1f2e;border:1px solid #2d6a4f;border-radius:14px;padding:18px 20px;display:none;}
+.reg-sum-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.reg-sum-title{font-size:0.88rem;font-weight:700;color:#52b788;}
+.reg-sum-time{font-size:0.66rem;color:#475569;margin-top:2px;}
+.reg-edit-btn{background:#0f1117;border:1px solid #2a2f3e;border-radius:6px;color:#94a3b8;padding:5px 11px;cursor:pointer;font-family:inherit;font-size:0.71rem;transition:all .2s;}
+.reg-edit-btn:hover{border-color:#52b788;color:#52b788;}
+.macro-cmp{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:12px;}
+.mc-card{background:#0f1117;border-radius:10px;padding:10px 12px;border:1px solid #1e293b;}
+.mc-lbl{font-size:0.61rem;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.mc-row{display:flex;justify-content:space-between;align-items:baseline;gap:6px;}
+.mc-val{font-size:1rem;font-weight:700;color:#e2e8f0;}
+.mc-plan{font-size:0.66rem;color:#475569;margin-top:2px;}
+.mc-delta{font-size:0.71rem;font-weight:600;}
+.ok{color:#52b788;}.over{color:#f59e0b;}.under{color:#60a5fa;}
+.reg-mood{font-size:0.88rem;margin-bottom:8px;}
+.reg-notes{background:#0f1117;border-radius:8px;padding:9px 13px;font-size:0.79rem;color:#94a3b8;line-height:1.5;border-left:3px solid #1e293b;font-style:italic;}
+
+#section-inbody{padding:24px 28px;max-width:1000px;margin:0 auto;display:none;}
+.ib-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.ib-title{font-size:1.2rem;font-weight:700;}
+.ib-title span{color:#60a5fa;}
+.ib-add-btn{background:#1e2a3f;border:1.5px solid #2d4a6f;border-radius:10px;color:#60a5fa;padding:9px 18px;cursor:pointer;font-family:inherit;font-size:0.83rem;font-weight:600;transition:all .2s;}
+.ib-add-btn:hover{background:#162035;border-color:#60a5fa;}
+.ib-goal{background:#1a1f2e;border:1px solid #2a2f3e;border-left:4px solid #52b788;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+.ib-goal-item{text-align:center;}
+.ib-goal-val{font-size:1.15rem;font-weight:700;}
+.ib-goal-lbl{font-size:0.63rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.ib-goal-sep{color:#2a2f3e;font-size:1.4rem;}
+.goal-bar-wrap{flex:1;min-width:180px;}
+.goal-bar-label{display:flex;justify-content:space-between;font-size:0.71rem;color:#64748b;margin-bottom:5px;}
+.goal-bar-track{background:#0f1117;border-radius:99px;height:9px;overflow:hidden;border:1px solid #2a2f3e;}
+.goal-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#2d6a4f,#52b788);transition:width .5s;}
+.ib-entries{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.ib-entry{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;overflow:hidden;}
+.ib-entry.first-entry{border-color:#2d4a6f;}
+.ib-entry-hdr{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:#0f1117;flex-wrap:wrap;gap:8px;}
+.ib-entry-date{font-size:0.92rem;font-weight:700;}
+.ib-entry-tag{font-size:0.66rem;padding:3px 9px;border-radius:20px;font-weight:600;}
+.tag-inicial{background:#1e2a3f;color:#60a5fa;}
+.tag-seguimiento{background:#1e3a2f;color:#52b788;}
+.ib-entry-del{background:transparent;border:1px solid #374151;border-radius:6px;color:#64748b;padding:4px 9px;cursor:pointer;font-family:inherit;font-size:0.7rem;transition:all .2s;}
+.ib-entry-del:hover{border-color:#dc2626;color:#dc2626;}
+.ib-metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:9px;padding:14px 16px;}
+.ib-metric{background:#0f1117;border-radius:9px;padding:9px 12px;border:1px solid #1e293b;}
+.ib-metric .ml{font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.ib-metric .mv{font-size:1.05rem;font-weight:700;}
+.ib-metric .mu{font-size:0.68rem;color:#475569;}
+.ib-metric.highlight .mv{color:#60a5fa;}
+.ib-metric .mdelta{font-size:0.68rem;font-weight:600;margin-top:2px;}
+.ib-metric .mdelta.pos{color:#52b788;}.ib-metric .mdelta.neg{color:#f87171;}.ib-metric .mdelta.neu{color:#64748b;}
+.ib-entry-nota{padding:0 16px 12px;font-size:0.78rem;color:#64748b;font-style:italic;}
+.ib-evo{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;padding:18px 20px;margin-bottom:20px;overflow-x:auto;}
+.ib-evo-title{font-size:0.92rem;font-weight:700;color:#60a5fa;margin-bottom:14px;}
+.ib-evo-table{width:100%;border-collapse:collapse;font-size:0.81rem;min-width:300px;}
+.ib-evo-table th{color:#64748b;font-size:0.66rem;text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;text-align:left;background:#0f1117;}
+.ib-evo-table td{padding:9px 10px;border-top:1px solid #1e293b;color:#cbd5e1;}
+.ib-evo-table tr:hover td{background:#0d1525;}
+.ib-form-wrap{background:#1a1f2e;border:1px solid #2d4a6f;border-radius:14px;padding:20px;display:none;margin-bottom:20px;}
+.ib-form-title{font-size:0.92rem;font-weight:700;color:#60a5fa;margin-bottom:16px;}
+.ib-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px;}
+.ib-field{display:flex;flex-direction:column;gap:4px;}
+.ib-field label{font-size:0.66rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+.ib-field input,.ib-field textarea{background:#0f1117;border:1px solid #2a2f3e;border-radius:8px;color:#e2e8f0;padding:8px 11px;font-size:0.82rem;font-family:inherit;outline:none;transition:border-color .15s;width:100%;}
+.ib-field input:focus,.ib-field textarea:focus{border-color:#3b82f6;}
+.ib-field.full{grid-column:1/-1;}
+.ib-form-actions{display:flex;gap:10px;justify-content:flex-end;}
+.ib-cancel{background:transparent;border:1px solid #374151;border-radius:8px;color:#64748b;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:0.82rem;}
+.ib-cancel:hover{border-color:#60a5fa;color:#94a3b8;}
+.ib-save{background:#1d4ed8;border:none;border-radius:8px;color:#fff;padding:8px 22px;cursor:pointer;font-family:inherit;font-size:0.82rem;font-weight:600;}
+.ib-save:hover{background:#1e40af;}
+.ib-empty{text-align:center;padding:28px;color:#475569;font-size:0.83rem;border:1.5px dashed #1e293b;border-radius:12px;}
+
+/* ── PERFIL ── */
+#section-perfil{padding:24px 28px;max-width:700px;margin:0 auto;display:none;}
+.prf-card{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;padding:22px;}
+.prf-title{font-size:1rem;font-weight:700;color:#52b788;margin-bottom:18px;}
+.prf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px;}
+.prf-field{display:flex;flex-direction:column;gap:5px;}
+.prf-field.full{grid-column:1/-1;}
+.prf-field label{font-size:0.66rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+.prf-field input,.prf-field select{background:#0f1117;border:1px solid #2a2f3e;border-radius:8px;color:#e2e8f0;padding:9px 12px;font-size:0.84rem;font-family:inherit;outline:none;transition:border-color .15s;width:100%;}
+.prf-field input:focus,.prf-field select:focus{border-color:#2d6a4f;}
+.prf-field select option{background:#1a1f2e;}
+.prf-save-btn{margin-top:18px;background:#2d6a4f;border:none;border-radius:9px;color:#fff;padding:11px 26px;cursor:pointer;font-family:inherit;font-size:0.86rem;font-weight:600;width:100%;transition:all .2s;}
+.prf-save-btn:hover{background:#22543d;}
+
+/* ── LOGIN / ONBOARDING ── */
+@keyframes nd-spin{to{transform:rotate(360deg)}}
+#nd-login{position:fixed;inset:0;background:#0f1117;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:20px;}
+.nd-login-card{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:16px;padding:34px 26px;max-width:340px;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.nd-login-icon{font-size:2.8rem;}
+.nd-login-title{font-size:1.4rem;font-weight:700;color:#fff;}
+.nd-login-title span{color:#52b788;}
+.nd-login-sub{font-size:0.8rem;color:#64748b;line-height:1.6;}
+.nd-google-btn{display:flex;align-items:center;gap:10px;background:#fff;border:none;border-radius:10px;padding:12px 20px;cursor:pointer;font-size:0.86rem;font-weight:600;color:#1f2937;width:100%;justify-content:center;transition:all .2s;box-shadow:0 2px 10px rgba(0,0,0,.35);font-family:inherit;}
+.nd-google-btn:hover{background:#f1f5f9;}
+.nd-login-err{color:#f87171;font-size:0.76rem;display:none;}
+
+#nd-onboarding{position:fixed;inset:0;background:#0f1117;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9997;padding:20px;overflow-y:auto;}
+.onb-card{background:#1a1f2e;border:1px solid #2a2f3e;border-radius:16px;padding:28px 24px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:14px;}
+.onb-title{font-size:1.25rem;font-weight:700;color:#fff;}
+.onb-title span{color:#52b788;}
+.onb-sub{font-size:0.8rem;color:#64748b;line-height:1.6;margin-top:-6px;}
+.onb-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.onb-field{display:flex;flex-direction:column;gap:5px;}
+.onb-field.full{grid-column:1/-1;}
+.onb-field label{font-size:0.65rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;}
+.onb-field input,.onb-field select{background:#0f1117;border:1px solid #2a2f3e;border-radius:8px;color:#e2e8f0;padding:9px 12px;font-size:0.84rem;font-family:inherit;outline:none;transition:border-color .15s;width:100%;}
+.onb-field input:focus,.onb-field select:focus{border-color:#2d6a4f;}
+.onb-field select option{background:#1a1f2e;}
+.onb-sep{border-top:1px solid #1e293b;padding-top:12px;}
+.onb-sep-title{font-size:0.72rem;color:#52b788;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;}
+.onb-optional{font-size:0.7rem;color:#475569;margin-top:-10px;}
+.onb-btn{background:#2d6a4f;border:none;border-radius:10px;color:#fff;padding:13px;cursor:pointer;font-family:inherit;font-size:0.88rem;font-weight:600;width:100%;transition:all .2s;margin-top:4px;}
+.onb-btn:hover{background:#22543d;}
+.onb-err{color:#f87171;font-size:0.76rem;display:none;text-align:center;}
+
+.nd-signout{background:transparent;border:1px solid #374151;border-radius:7px;color:#64748b;padding:5px 12px;cursor:pointer;font-size:0.71rem;font-family:inherit;transition:all .2s;}
+.nd-signout:hover{border-color:#f87171;color:#f87171;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .ib-metrics{grid-template-columns:repeat(3,1fr);}
+  .ib-form-grid,.reg-grid,.onb-grid,.prf-grid{grid-template-columns:repeat(2,1fr);}
+  .macro-cmp{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  header{flex-direction:column;align-items:flex-start;padding:12px 14px;gap:8px;}
+  header h1{font-size:1.2rem;}
+  .meta{text-align:left;font-size:0.7rem;}
+  .stats{padding:9px 12px;gap:6px;}
+  .stat{flex:0 0 calc(33.33% - 4px);min-width:0;padding:7px 5px;}
+  .stat .val{font-size:0.98rem;}
+  .stat .lbl{font-size:0.58rem;}
+  .snav{padding:10px 12px;font-size:0.8rem;}
+  .week-nav{padding:10px 12px;}
+  .wnav-btn{padding:6px 10px;font-size:0.74rem;}
+  .wnav-title{font-size:0.98rem;}
+  .day-wrap,#section-inbody,#section-perfil{padding:12px 12px;}
+  .day-hdr{flex-direction:column;gap:4px;}
+  .day-title{font-size:1rem;}
+  .day-macros{font-size:0.68rem;gap:6px;}
+  .meals-grid{gap:11px;}
+  .meal-card{grid-template-columns:1fr;}
+  .meal-img{flex-direction:row;height:64px;justify-content:flex-start;padding:10px 14px;gap:10px;}
+  .meal-emoji{font-size:1.8rem;}
+  .meal-body{padding:11px 13px;}
+  .ib-metrics{grid-template-columns:repeat(2,1fr);gap:7px;padding:11px;}
+  .ib-header{flex-direction:column;align-items:flex-start;}
+  .ib-add-btn{width:100%;text-align:center;}
+  .ib-goal{flex-direction:column;gap:8px;}
+  .ib-goal-sep{display:none;}
+  .ib-goal-item{display:flex;justify-content:space-between;align-items:center;}
+  .macro-cmp{grid-template-columns:1fr 1fr;gap:7px;}
+  .reg-grid{grid-template-columns:1fr 1fr;gap:9px;}
+  .onb-grid{grid-template-columns:1fr 1fr;}
+  .onb-card{padding:22px 18px;}
+  .prf-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:380px){
+  .stat{flex:0 0 calc(50% - 3px);}
+  .onb-grid,.reg-grid,.prf-grid{grid-template-columns:1fr;}
+  .ib-metrics{grid-template-columns:1fr 1fr;}
+  .macro-cmp{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<!-- LOGIN -->
+<div id="nd-login">
+  <div class="nd-login-card">
+    <div class="nd-login-icon">🥗</div>
+    <div class="nd-login-title">Plan <span>Nutricional</span></div>
+    <div class="nd-login-sub">Ingresa con tu cuenta Google para acceder a tu plan personalizado</div>
+    <button class="nd-google-btn" onclick="signInWithGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20">
+      Continuar con Google
+    </button>
+    <div class="nd-login-err" id="nd-login-err">Error al iniciar sesión. Intenta de nuevo.</div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="nd-onboarding">
+  <div class="onb-card">
+    <div class="onb-title">Bienvenido/a <span>👋</span></div>
+    <div class="onb-sub">Completa tu perfil para calcular tus metas de calorías y macros personalizados.</div>
+    <div class="onb-grid">
+      <div class="onb-field full"><label>Tu nombre</label><input type="text" id="onb-nombre" placeholder="Ej: María González"></div>
+      <div class="onb-field"><label>Edad</label><input type="number" id="onb-edad" placeholder="Ej: 28" min="15" max="80"></div>
+      <div class="onb-field"><label>Sexo</label>
+        <select id="onb-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div>
+      <div class="onb-field"><label>Peso actual (kg)</label><input type="number" id="onb-peso" step="0.1" placeholder="Ej: 85.0"></div>
+      <div class="onb-field"><label>Altura (cm)</label><input type="number" id="onb-altura" placeholder="Ej: 170"></div>
+      <div class="onb-field full"><label>Nivel de actividad</label>
+        <select id="onb-actividad">
+          <option value="sed">Sedentario (trabajo de escritorio, sin ejercicio)</option>
+          <option value="light">Ligeramente activo (ejercicio 1-2 días/semana)</option>
+          <option value="mod" selected>Moderadamente activo (ejercicio 3-4 días/semana)</option>
+          <option value="active">Muy activo (ejercicio 5+ días/semana)</option>
+        </select></div>
+      <div class="onb-field full"><label>Objetivo</label>
+        <select id="onb-objetivo">
+          <option value="bajar">Bajar grasa corporal</option>
+          <option value="mantener">Mantener peso y composición</option>
+          <option value="ganar">Ganar masa muscular</option>
+        </select></div>
+    </div>
+    <div class="onb-sep">
+      <div class="onb-sep-title">Datos InBody (opcional)</div>
+      <div class="onb-optional">Si tienes un informe InBody, agrégalos para mayor precisión. Puedes omitirlos y agregarlos después.</div>
+      <div class="onb-grid" style="margin-top:10px;">
+        <div class="onb-field"><label>Masa grasa (kg)</label><input type="number" id="onb-masagrasa" step="0.1" placeholder="Ej: 25.0"></div>
+        <div class="onb-field"><label>Músculo esquelético MME (kg)</label><input type="number" id="onb-mme" step="0.1" placeholder="Ej: 32.0"></div>
+        <div class="onb-field"><label>% Grasa corporal</label><input type="number" id="onb-pctgrasa" step="0.1" placeholder="Ej: 28.5"></div>
+        <div class="onb-field"><label>Metabolismo basal (kcal)</label><input type="number" id="onb-metabolismo" placeholder="Ej: 1750"></div>
+      </div>
+    </div>
+    <div class="onb-err" id="onb-err">Por favor completa los campos obligatorios.</div>
+    <button class="onb-btn" onclick="saveOnboarding()">Crear mi plan →</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="nd-loading" style="position:fixed;inset:0;background:#0f1117;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;">
+  <div style="width:40px;height:40px;border:3px solid #2d6a4f;border-top-color:#52b788;border-radius:50%;animation:nd-spin .8s linear infinite;"></div>
+  <div style="color:#52b788;font-size:0.88rem;font-family:'Segoe UI',sans-serif;">Cargando tu plan...</div>
+</div>
+
+<header>
+  <div>
+    <h1>Plan <span>Nutricional</span></h1>
+    <p id="hdr-sub" style="color:#475569;font-size:0.76rem;margin-top:2px;"></p>
+  </div>
+  <div class="meta">
+    <div id="hdr-meta"></div>
+    <div style="margin-top:6px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="nd-signout" onclick="showSection('perfil')">⚙️ Mi perfil</button>
+      <button class="nd-signout" onclick="signOut()">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
+
+<div class="stats" id="stats-bar"></div>
+
+<div class="section-nav">
+  <div class="snav active" id="snav-plan" onclick="showSection('plan')">📅 Plan Semanal</div>
+  <div class="snav inbody-tab" id="snav-inbody" onclick="showSection('inbody')">📊 InBody</div>
+  <div class="snav" id="snav-perfil" onclick="showSection('perfil')">👤 Perfil</div>
+</div>
+
+<div id="section-plan">
+  <div class="week-nav" id="week-nav"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="content"></div>
+</div>
+
+<div id="section-inbody"></div>
+<div id="section-perfil"></div>
+
+<script>
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+// ── FIREBASE ────────────────────────────────────────────────────────────────
+const FB_CFG={apiKey:"AIzaSyCMyCDN8_a59blO_jHg04-3QI2-4TnkT-E",authDomain:"personal-f6e54.firebaseapp.com",databaseURL:"https://personal-f6e54-default-rtdb.firebaseio.com",projectId:"personal-f6e54",storageBucket:"personal-f6e54.firebasestorage.app",messagingSenderId:"490522379116",appId:"1:490522379116:web:da7377a7f6f336bb4fa949"};
+firebase.initializeApp(FB_CFG);
+const DB=firebase.database();
+const AUTH=firebase.auth();
+const GPROVIDER=new firebase.auth.GoogleAuthProvider();
+
+let UID=null;
+let STORE={cw:1,weeks:{},inbody:{}};
+let PROFILE={};
+let USER_MACROS={kcal:1900,prot:150,fat:55,carb:180};
+let CW=1;
+let START=new Date();
+
+function uRef(path){ return DB.ref(`users/${UID}/${path}`); }
+function _wk(){ if(!STORE.weeks[`w${CW}`]) STORE.weeks[`w${CW}`]={}; return STORE.weeks[`w${CW}`]; }
+function getChecks(){ return _wk().chk||{}; }
+function saveChecks(o){ _wk().chk=o; uRef(`nd/weeks/w${CW}/chk`).set(o); }
+function getVarSels(){ return _wk().var||{}; }
+function saveVarSels(o){ _wk().var=o; uRef(`nd/weeks/w${CW}/var`).set(o); }
+function getVariant(di,mi){ return getVarSels()[`${di}-${mi}`]||0; }
+function getLog(di){ return _wk().logs?.[`d${di}`]||null; }
+function saveLog(di,data){ if(!_wk().logs) _wk().logs={}; _wk().logs[`d${di}`]=data; uRef(`nd/weeks/w${CW}/logs/d${di}`).set(data); }
+function getIBHistory(){ return Object.values(STORE.inbody||{}).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)); }
+function saveIBHistory(arr){ const obj={}; arr.forEach(e=>{obj[`e${e.id}`]=e;}); STORE.inbody=obj; uRef('nd/inbody').set(obj); }
+function fmtTime(ts){ const d=new Date(ts); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function fmtDateTime(ts){ const d=new Date(ts); return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }
+
+// ── MACRO CALCULATION ────────────────────────────────────────────────────────
+function calcMacros(p){
+  const peso=parseFloat(p.peso)||80, altura=parseFloat(p.altura)||170, edad=parseInt(p.edad)||30;
+  const sexo=p.sexo||'M', actividad=p.actividad||'mod', objetivo=p.objetivo||'bajar';
+  const mme=parseFloat(p.mme)||null;
+  let bmr=10*peso+6.25*altura-5*edad+(sexo==='M'?5:-161);
+  const mult={sed:1.2,light:1.375,mod:1.55,active:1.725};
+  const tdee=Math.round(bmr*(mult[actividad]||1.375));
+  const adj={bajar:-500,mantener:0,ganar:300};
+  const kcal=Math.max(1200,tdee+(adj[objetivo]||-500));
+  const leanBase=mme||peso*0.75;
+  const prot=Math.round(leanBase*2.2);
+  const fat=Math.round((kcal*0.25)/9);
+  const carb=Math.max(50,Math.round((kcal-prot*4-fat*9)/4));
+  return {kcal:Math.round(kcal),prot,fat,carb,tdee};
+}
+
+// ── PLAN DATA ─────────────────────────────────────────────────────────────
+const PLAN=[
+  { day:"Lunes", meals:[
+    {name:"Desayuno",time:"07:00–08:00",emoji:"🍳",ca:"#b45309",cb:"#78350f",method:"Plancha · Hervido",
+     tip:"Bate 3 huevos con sal y cocínalos revolviendo en sartén antiadherente con spray vegetal a fuego bajo-medio. Aparte, calienta la leche descremada, agrega la avena Quaker y revuelve 5 min hasta que esté cremosa.",
+     items:[{f:"Huevos Agrosuper",q:"3 unidades",k:215},{f:"Avena Quaker",q:"80g en seco",k:305},{f:"Leche Colun descremada",q:"200ml",k:68}]},
+    {name:"Colación AM",time:"10:00–10:30",emoji:"🥛",ca:"#1d4ed8",cb:"#1e3a8a",method:"Sin cocción",
+     tip:"Sirve el yogur griego Colun en un bowl y agrega las nueces partidas encima.",
+     items:[{f:"Yogur Griego Colun natural",q:"200g",k:112},{f:"Nueces Watts",q:"20g",k:148}]},
+    {name:"Almuerzo",time:"13:00–14:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐠",ca:"#0f766e",cb:"#134e4a",method:"Plancha",tip:"Sazona el salmón con limón, sal de mar y eneldo. Sartén caliente 4-5 min por lado.",pf:"Salmón del Pacífico fresco",pq:"180g",pk:306},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo en polvo, orégano, paprika y limón. Plancha caliente 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Arroz integral Tucapel",q:"150g cocido",k:165},{f:"Ensalada lechuga, tomate, pepino",q:"libre",k:20},{f:"Aceite de oliva extra virgen",q:"1 cucharadita",k:45}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🐟",ca:"#0369a1",cb:"#0c4a6e",method:"Sin cocción",
+     tip:"Escurre el atún y mézclalo con limón y cebollín picado. Sirve sobre galletas de arroz.",
+     items:[{f:"Atún Aldaya al agua (lata)",q:"1 lata 160g",k:130},{f:"Galletas de arroz integrales",q:"3 unidades",k:120}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐟",ca:"#0f766e",cb:"#134e4a",method:"Horno",tip:"Envuelve la reineta en papel aluminio con limón, ajo y sal. Hornea a 190°C por 20-22 min.",pf:"Reineta al horno",pq:"200g",pk:204},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo, orégano y paprika. Plancha caliente 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Camote / batata cocido",q:"150g",k:148},{f:"Brócoli al vapor",q:"150g",k:51}]}
+  ]},
+  { day:"Martes", meals:[
+    {name:"Desayuno",time:"07:00–08:00",emoji:"🥚",ca:"#7c3aed",cb:"#4c1d95",method:"Plancha",
+     tip:"Separa 4 claras + 1 huevo, bate con sal. Omelette en sartén antiadherente. Sirve sobre pan integral tostado con palta aplastada.",
+     items:[{f:"Pan de molde integral Bimbo",q:"2 rebanadas",k:154},{f:"Huevos Agrosuper (4 claras+1 entero)",q:"5 und",k:142},{f:"Palta Hass",q:"½ unidad",k:112}]},
+    {name:"Colación AM",time:"10:00–10:30",emoji:"🧀",ca:"#d97706",cb:"#92400e",method:"Sin cocción",
+     tip:"El quesillo fresco lo encuentras laminado en la sección de lácteos. Sírvelo con la manzana en gajos.",
+     items:[{f:"Quesillo fresco",q:"200g",k:164},{f:"Manzana",q:"1 unidad mediana",k:95}]},
+    {name:"Almuerzo",time:"13:00–14:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐟",ca:"#0369a1",cb:"#0c4a6e",method:"Horno",tip:"Merluza en papel aluminio con limón, sal y perejil. Hornea a 190°C por 18-20 min.",pf:"Merluza austral al horno",pq:"200g",pk:200},{tag:"Común",emoji:"🥩",ca:"#dc2626",cb:"#7f1d1d",method:"Sartén",tip:"Saltea la carne molida con ajo y cebolla hasta dorar. Sazona con comino y orégano.",pf:"Carne molida especial 90% magra",pq:"200g",pk:350}],
+     sides:[{f:"Lentejas Carozzi cocidas",q:"150g",k:175},{f:"Ensalada mixta con limón",q:"libre",k:24}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🍌",ca:"#ca8a04",cb:"#713f12",method:"Sin cocción",
+     tip:"El requesón es alto en caseína, ideal para la tarde. Mézclalo con el plátano en rodajas.",
+     items:[{f:"Requesón",q:"150g",k:107},{f:"Plátano / banana",q:"1 unidad pequeña",k:89}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🦃",ca:"#064e3b",cb:"#022c22",method:"Plancha",tip:"Sazona el filete de pavo con ajo, orégano y limón. Plancha a fuego medio 5-6 min por lado.",pf:"Filete de pavo San Jorge",pq:"200g",pk:278},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo en polvo, comino y limón. Plancha caliente 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Quinoa orgánica",q:"120g cocida",k:146},{f:"Espinaca salteada con ajo",q:"100g",k:50}]}
+  ]},
+  { day:"Miércoles", meals:[
+    {name:"Desayuno",time:"07:00–08:00",emoji:"💪",ca:"#b45309",cb:"#451a03",method:"Hervido",
+     tip:"Calienta 200ml de leche Colun. Agrega avena y cocina 5 min revolviendo. Fuera del fuego, mezcla el scoop de proteína whey.",
+     items:[{f:"Avena Quaker",q:"80g en seco",k:298},{f:"Proteína Whey (vainilla o chocolate)",q:"1 scoop 30g",k:132},{f:"Leche Colun descremada",q:"200ml",k:68}]},
+    {name:"Colación AM",time:"10:00–10:30",emoji:"🥛",ca:"#1d4ed8",cb:"#1e3a8a",method:"Sin cocción",
+     tip:"Sirve el yogur griego con las almendras naturales encima.",
+     items:[{f:"Yogur Griego Colun natural",q:"200g",k:112},{f:"Almendras naturales Watts",q:"20g",k:140}]},
+    {name:"Almuerzo",time:"13:00–14:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐟",ca:"#0369a1",cb:"#0c4a6e",method:"Horno",tip:"Merluza en papel aluminio con limón, sal y perejil. Hornea 190°C por 20 min.",pf:"Merluza austral",pq:"250g",pk:255},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo, paprika y limón. Plancha caliente 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Papa entera con cáscara cocida",q:"200g",k:160},{f:"Ensalada repollo y zanahoria rallada",q:"libre",k:40},{f:"Aceite de oliva",q:"1 cucharadita",k:45}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🥚",ca:"#374151",cb:"#111827",method:"Hervido",
+     tip:"Hierve los huevos exactamente 10 min. Enfría con agua fría de inmediato para pelarlos fácil.",
+     items:[{f:"Huevos duros Agrosuper",q:"2 unidades",k:143},{f:"Galletas de arroz integrales",q:"3 unidades",k:100}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐠",ca:"#0f766e",cb:"#134e4a",method:"Plancha · Horno",tip:"Sella el salmón 3 min por lado. Pasa al horno 180°C por 8 min. Aliña con limón y eneldo.",pf:"Salmón del Pacífico fresco",pq:"180g",pk:306},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Horno",tip:"Sazona el muslo sin piel con ajo, paprika y orégano. Hornea 200°C por 30-35 min.",pf:"Muslo de pollo Agrosuper sin piel",pq:"200g",pk:274}],
+     sides:[{f:"Arroz integral Tucapel",q:"120g cocido",k:121},{f:"Zapallo italiano grillado",q:"150g",k:37}]}
+  ]},
+  { day:"Jueves", meals:[
+    {name:"Desayuno",time:"07:00–08:00",emoji:"🍳",ca:"#b45309",cb:"#78350f",method:"Plancha",
+     tip:"Revuelve 3 huevos a fuego bajo. Tuesta el pan integral. Aplasta ¼ palta sobre el pan con limón y sal.",
+     items:[{f:"Huevos Agrosuper revueltos",q:"3 unidades",k:215},{f:"Pan de molde integral Bimbo",q:"2 rebanadas",k:154},{f:"Tomate + Palta Hass",q:"½ tomate + ¼ palta",k:72}]},
+    {name:"Colación AM",time:"10:00–10:30",emoji:"🐟",ca:"#0369a1",cb:"#0c4a6e",method:"Sin cocción",
+     tip:"Escurre el atún y mézclalo con limón y perejil. Sirve sobre galletas de arroz.",
+     items:[{f:"Atún Aldaya al agua (lata)",q:"1 lata 160g",k:130},{f:"Galletas de arroz integrales",q:"3 unidades",k:100}]},
+    {name:"Almuerzo",time:"13:00–14:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐠",ca:"#0f766e",cb:"#134e4a",method:"Plancha sellado",tip:"Sella los lomos de atún en plancha MUY caliente, 2-3 min por lado. Debe quedar rosado por dentro.",pf:"Atún en lomos frescos",pq:"200g",pk:280},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo y paprika. Cocina en plancha caliente 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Fideos integrales Carozzi",q:"150g cocidos",k:179},{f:"Salsa de tomate natural sin azúcar",q:"100g",k:36},{f:"Ensalada verde",q:"libre",k:20}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🥛",ca:"#1d4ed8",cb:"#1e3a8a",method:"Sin cocción",
+     tip:"Sirve el yogur griego con las nueces partidas encima.",
+     items:[{f:"Yogur Griego Colun natural",q:"200g",k:112},{f:"Nueces Watts",q:"15g",k:111}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🥩",ca:"#991b1b",cb:"#450a0a",method:"Plancha",tip:"Aplana el filete de cerdo. Sazona con ajo, tomillo y sal. Plancha 4-5 min por lado.",pf:"Filete lomo de cerdo sin grasa",pq:"180g",pk:270},{tag:"Común",emoji:"🥩",ca:"#dc2626",cb:"#7f1d1d",method:"Plancha",tip:"Sal gruesa y pimienta al lomo liso. Plancha muy caliente, 3-4 min por lado. Reposa 5 min.",pf:"Lomo liso vacuno a la plancha",pq:"180g",pk:294}],
+     sides:[{f:"Camote / batata cocido",q:"150g",k:148},{f:"Ensalada pepino y apio con limón",q:"libre",k:20}]}
+  ]},
+  { day:"Viernes", meals:[
+    {name:"Desayuno",time:"07:00–08:00",emoji:"🥣",ca:"#b45309",cb:"#451a03",method:"Hervido · Plancha",
+     tip:"Cuece la avena con leche caliente, 5 min. Aparte, cuece 4 claras revueltas en sartén con spray vegetal.",
+     items:[{f:"Avena Quaker",q:"80g en seco",k:305},{f:"Claras de huevo Agrosuper",q:"4 claras",k:57},{f:"Leche Colun descremada",q:"150ml",k:48}]},
+    {name:"Colación AM",time:"10:00–10:30",emoji:"🧀",ca:"#d97706",cb:"#92400e",method:"Sin cocción",
+     tip:"El requesón es alto en caseína. Combínalo con el plátano en rodajas.",
+     items:[{f:"Requesón",q:"200g",k:140},{f:"Plátano / banana",q:"1 unidad pequeña",k:89}]},
+    {name:"Almuerzo",time:"13:00–14:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐠",ca:"#0f766e",cb:"#134e4a",method:"Plancha",tip:"Sazona el salmón con limón y eneldo. Sartén caliente 4-5 min por lado.",pf:"Salmón del Pacífico fresco",pq:"180g",pk:306},{tag:"Común",emoji:"🍗",ca:"#15803d",cb:"#14532d",method:"Plancha",tip:"Sazona la pechuga con ajo, paprika y limón. Plancha 6-7 min por lado.",pf:"Pechuga de pollo Agrosuper",pq:"200g",pk:295}],
+     sides:[{f:"Arroz integral Tucapel",q:"120g cocido",k:121},{f:"Ensalada mixta con limón",q:"libre",k:28}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🥜",ca:"#92400e",cb:"#451a03",method:"Sin cocción",
+     tip:"Mezcla el yogur con las almendras. Alto en proteína para la tarde.",
+     items:[{f:"Yogur Griego Colun natural",q:"150g",k:84},{f:"Almendras naturales Watts",q:"15g",k:105}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🍳",ca:"#b45309",cb:"#78350f",method:"Plancha",tip:"Bate 3 huevos con el atún escurrido, sal y orégano. Cocina como omelette en sartén.",pf:"Omelette con atún Aldaya",pq:"3 huevos + 1 lata",pk:345},{tag:"Común",emoji:"🍳",ca:"#374151",cb:"#1f2937",method:"Plancha",tip:"Bate 3 huevos con el jamón en trozos, sal y orégano. Cocina como omelette.",pf:"Omelette con jamón pavo San Jorge",pq:"3 huevos + 80g jamón",pk:310}],
+     sides:[{f:"Camote cocido",q:"120g",k:118},{f:"Ensalada verde libre",q:"libre",k:15}]}
+  ]},
+  { day:"Sábado", meals:[
+    {name:"Desayuno",time:"08:00–09:00",emoji:"🥞",ca:"#7c3aed",cb:"#4c1d95",method:"Plancha",
+     tip:"Mezcla la harina de avena con el huevo, leche y sal hasta obtener una mezcla homogénea. Cocina en sartén antiadherente como tortillas pequeñas.",
+     items:[{f:"Avena Quaker molida (harina)",q:"60g",k:228},{f:"Huevo Agrosuper",q:"2 unidades",k:143},{f:"Leche Colun descremada",q:"100ml",k:34},{f:"Yogur Griego Colun",q:"100g",k:56}]},
+    {name:"Colación AM",time:"10:30–11:00",emoji:"🍎",ca:"#dc2626",cb:"#7f1d1d",method:"Sin cocción",
+     tip:"Merienda simple y nutritiva para antes del almuerzo del fin de semana.",
+     items:[{f:"Manzana o pera",q:"1 unidad",k:95},{f:"Nueces Watts",q:"20g",k:148}]},
+    {name:"Almuerzo",time:"13:30–14:30",type:"variant",
+     variants:[{tag:"Especial",emoji:"🍖",ca:"#7c3aed",cb:"#4c1d95",method:"Horno",tip:"Adoba el costillar con ajo, orégano, paprika y limón. Hornea cubierto con aluminio a 170°C por 1.5 hrs. Destapa los últimos 15 min.",pf:"Costillar cerdo magro",pq:"250g",pk:380},{tag:"Común",emoji:"🍗",ca:"#ca8a04",cb:"#78350f",method:"Horno",tip:"Adoba el pollo con ajo, orégano y limón. Hornea a 200°C por 45-50 min dando vuelta a la mitad.",pf:"Pollo entero Agrosuper (pechuga y muslo sin piel)",pq:"300g",pk:450}],
+     sides:[{f:"Papas cocidas con cáscara",q:"200g",k:160},{f:"Ensalada mixta completa",q:"libre",k:35}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🥛",ca:"#1d4ed8",cb:"#1e3a8a",method:"Sin cocción",
+     tip:"Batido rápido post actividad. Mezcla todo en licuadora o agita bien.",
+     items:[{f:"Leche Colun descremada",q:"300ml",k:102},{f:"Proteína Whey (vainilla o chocolate)",q:"1 scoop 30g",k:120},{f:"Plátano",q:"½ unidad",k:44}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐡",ca:"#0369a1",cb:"#0c4a6e",method:"Horno",tip:"Congrio en papel aluminio con limón, ajo en láminas y sal de mar. Hornea a 190°C por 22-25 min.",pf:"Congrio colorado",pq:"200g",pk:200},{tag:"Común",emoji:"🐟",ca:"#0f766e",cb:"#134e4a",method:"Horno",tip:"Reineta en papel aluminio con limón, ajo y sal. Hornea 190°C por 20-22 min.",pf:"Reineta al horno",pq:"200g",pk:204}],
+     sides:[{f:"Quinoa",q:"100g cocida",k:120},{f:"Espinaca salteada con ajo",q:"100g",k:50}]}
+  ]},
+  { day:"Domingo", meals:[
+    {name:"Desayuno",time:"08:30–09:30",emoji:"🍳",ca:"#b45309",cb:"#78350f",method:"Plancha · Tostado",
+     tip:"Mezcla las claras con la harina de avena, bicarbonato y sal. Cocina como pancakes en sartén antiadherente. Sirve con yogur.",
+     items:[{f:"Claras de huevo Agrosuper",q:"6 claras",k:84},{f:"Avena Quaker molida",q:"50g",k:189},{f:"Yogur Griego Colun natural",q:"100g",k:56},{f:"Berries / frutillas frescas",q:"100g",k:45}]},
+    {name:"Colación AM",time:"11:00–11:30",emoji:"🧀",ca:"#d97706",cb:"#92400e",method:"Sin cocción",
+     tip:"Snack proteico simple. El quesillo fresco es bajo en grasa y alto en proteína.",
+     items:[{f:"Quesillo fresco",q:"150g",k:123},{f:"Galletas de arroz integrales",q:"3 unidades",k:100}]},
+    {name:"Almuerzo",time:"13:30–14:30",type:"variant",
+     variants:[{tag:"Especial",emoji:"🐠",ca:"#0f766e",cb:"#134e4a",method:"Plancha",tip:"Salmón con sal de mar, limón y eneldo. Plancha caliente 4-5 min por lado. Jugoso adentro.",pf:"Salmón del Pacífico fresco",pq:"200g",pk:340},{tag:"Común",emoji:"🥩",ca:"#dc2626",cb:"#7f1d1d",method:"Plancha",tip:"Atempera la posta 20 min. Sal gruesa y pimienta. Plancha muy caliente 3-4 min por lado. Reposa 5 min.",pf:"Posta vacuna magra",pq:"200g",pk:280}],
+     sides:[{f:"Arroz integral Tucapel",q:"150g cocido",k:165},{f:"Ensalada completa con palta",q:"libre + ½ palta",k:80}]},
+    {name:"Colación PM",time:"17:00–17:30",emoji:"🍌",ca:"#ca8a04",cb:"#713f12",method:"Sin cocción",
+     tip:"Merienda simple antes de la cena.",
+     items:[{f:"Plátano",q:"1 unidad mediana",k:105},{f:"Almendras Watts",q:"15g",k:105}]},
+    {name:"Cena",time:"20:00–21:00",type:"variant",
+     variants:[{tag:"Especial",emoji:"🍲",ca:"#7c3aed",cb:"#4c1d95",method:"Olla",tip:"Sofríe cebolla y ajo, agrega carne en trozos y sella. Agrega papa, zanahoria, choclo, zapallo, agua y sal. Cocina a fuego lento 45 min.",pf:"Cazuela vacuno magra",pq:"1 presa 200g + verduras",pk:380},{tag:"Común",emoji:"🍲",ca:"#15803d",cb:"#14532d",method:"Olla",tip:"Igual que la cazuela de vacuno pero con pollo. Sofríe cebolla y ajo, agrega presas de pollo sin piel, verduras y agua. Cocina 35-40 min.",pf:"Cazuela de pollo sin piel",pq:"1 presa 200g + verduras",pk:320}],
+     sides:[{f:"Arroz blanco Tucapel",q:"100g cocido",k:130}]}
+  ]}
+];
+
+// ── WEEK / DATE HELPERS ─────────────────────────────────────────────────────
+function weekStart(wk){ const d=new Date(START); d.setDate(d.getDate()+(wk-1)*7); return d; }
+function dayDate(wk,di){ const d=weekStart(wk); d.setDate(d.getDate()+di); return `${d.getDate()} ${MESES[d.getMonth()]}`; }
+function weekRange(wk){ const s=weekStart(wk); const e=new Date(s); e.setDate(e.getDate()+6); return `${s.getDate()} ${MESES[s.getMonth()]} – ${e.getDate()} ${MESES[e.getMonth()]} ${e.getFullYear()}`; }
+function totalDay(di){ const ch=getChecks(); let t=0,d=0; PLAN[di].meals.forEach((m,mi)=>{ if(m.type==='variant'){ t++; const vi=getVariant(di,mi); if(ch[`${di}-${mi}-v${vi}-p`]) d++; m.sides.forEach((_,si)=>{ t++; if(ch[`${di}-${mi}-s${si}`]) d++; }); } else { m.items.forEach((_,ii)=>{ t++; if(ch[`${di}-${mi}-i${ii}`]) d++; }); } }); return {t,d}; }
+function weekPct(wk){ const prev=CW; CW=wk; let t=0,d=0; PLAN.forEach((_,di)=>{ const r=totalDay(di); t+=r.t; d+=r.d; }); CW=prev; return t>0?Math.round(d/t*100):0; }
+
+// ── TOGGLE / VARIANT ────────────────────────────────────────────────────────
+function toggleItem(di,rowId,key){
+  const ch=getChecks(); if(ch[key]) delete ch[key]; else ch[key]={ts:Date.now()};
+  saveChecks(ch);
+  const row=document.getElementById(rowId); if(!row) return;
+  row.classList.toggle('checked',!!ch[key]);
+  const tb=row.querySelector('.ts-badge');
+  if(tb){ if(ch[key]){tb.textContent='⏱ '+fmtTime(ch[key].ts);tb.classList.add('show');}else{tb.textContent='';tb.classList.remove('show');} }
+  updateDayProg(di);
+}
+function updateDayProg(di){
+  const {t,d}=totalDay(di),pct=t>0?Math.round(d/t*100):0;
+  const bar=document.getElementById(`bar-${di}`),lbl=document.getElementById(`bar-lbl-${di}`),dot=document.getElementById(`tdot-${di}`);
+  if(bar) bar.style.width=pct+'%';
+  if(lbl) lbl.textContent=`${d} de ${t} · ${pct}%`;
+  if(dot) dot.style.background=pct===100?'#52b788':pct>0?'#f59e0b':'#1e293b';
+}
+function switchVariant(di,mi,vi){
+  const sel=getVarSels(); sel[`${di}-${mi}`]=vi; saveVarSels(sel);
+  const card=document.getElementById(`meal-${di}-${mi}`); if(!card) return;
+  const v=PLAN[di].meals[mi].variants[vi];
+  card.style.setProperty('--ca',v.ca); card.style.setProperty('--cb',v.cb);
+  const em=card.querySelector('.meal-emoji'); if(em) em.textContent=v.emoji;
+  const mb=card.querySelector('.method-badge'); if(mb) mb.textContent=v.method;
+  const ct=card.querySelector('.cook-text'); if(ct) ct.textContent=v.tip;
+  card.querySelectorAll('.vpill').forEach((p,i)=>p.classList.toggle('active',i===vi));
+  const protKey=`${di}-${mi}-v${vi}-p`,ch=getChecks(),rec=ch[protKey],isChk=!!rec;
+  const prowId=`prow-${di}-${mi}`,prow=document.getElementById(prowId);
+  if(prow){ prow.className='item-row prot-row'+(isChk?' checked':''); prow.querySelector('.item-food').textContent=v.pf; prow.querySelector('.item-qty').textContent=v.pq; prow.querySelector('.kcal-tag').textContent=v.pk+' kcal'; prow.onclick=()=>toggleItem(di,prowId,protKey); const ts=prow.querySelector('.ts-badge'); if(ts){if(rec){ts.textContent='⏱ '+fmtTime(rec.ts);ts.classList.add('show');}else{ts.textContent='';ts.classList.remove('show');}} }
+  updateDayProg(di);
+}
+function mkRow(id,di,key,food,qty,kcal){
+  const ch=getChecks(),rec=ch[key],isChk=!!rec;
+  return `<div class="item-row${isChk?' checked':''}" id="${id}" onclick="toggleItem(${di},'${id}','${key}')">
+    <div class="chk"><span class="chk-icon">✓</span></div>
+    <span class="item-food">${food}</span><span class="item-qty">${qty}</span>
+    <span class="kcal-tag">${kcal} kcal</span>
+    <span class="ts-badge${isChk?' show':''}">${isChk?'⏱ '+fmtTime(rec.ts):''}</span>
+  </div>`;
+}
+
+// ── REGISTRO DÍA ─────────────────────────────────────────────────────────────
+function openReg(di){
+  document.getElementById(`regbtn-${di}`).style.display='none';
+  document.getElementById(`regsum-${di}`).style.display='none';
+  const form=document.getElementById(`regform-${di}`); form.style.display='block';
+  const log=getLog(di);
+  if(log) ['kcal','prot','fat','carb','peso','mood','notes'].forEach(f=>{ const el=document.getElementById(`rf-${f}-${di}`); if(el) el.value=log[f]||''; });
+}
+function cancelReg(di){ document.getElementById(`regform-${di}`).style.display='none'; if(getLog(di)) renderRegSum(di); else document.getElementById(`regbtn-${di}`).style.display='block'; }
+function saveReg(di){
+  const g=f=>document.getElementById(`rf-${f}-${di}`).value;
+  const data={kcal:g('kcal'),prot:g('prot'),fat:g('fat'),carb:g('carb'),peso:g('peso'),mood:g('mood'),notes:g('notes'),ts:Date.now()};
+  saveLog(di,data); document.getElementById(`regform-${di}`).style.display='none'; renderRegSum(di);
+}
+function renderRegSum(di){
+  const log=getLog(di); if(!log) return;
+  const d=PLAN[di],m=USER_MACROS,sumEl=document.getElementById(`regsum-${di}`);
+  function mc(label,actual,planned,unit){
+    if(!actual||actual==='') return `<div class="mc-card"><div class="mc-lbl">${label}</div><div class="mc-val" style="color:#334155">—</div><div class="mc-plan">Meta: ${planned}${unit}</div></div>`;
+    const a=parseFloat(actual),delta=Math.round(a-planned),pct=Math.abs(delta/planned*100);
+    const cls=pct<=10?'ok':delta>0?'over':'under';
+    return `<div class="mc-card"><div class="mc-lbl">${label}</div>
+      <div class="mc-row"><span class="mc-val">${a}${unit}</span><span class="mc-delta ${cls}">${delta>=0?'+':''}${delta} ${delta>=0?'↑':'↓'}</span></div>
+      <div class="mc-plan">Meta: ${planned}${unit}</div></div>`;
+  }
+  sumEl.innerHTML=`
+    <div class="reg-sum-hdr">
+      <div><div class="reg-sum-title">📋 Registro · ${d.day} ${dayDate(CW,di)}</div><div class="reg-sum-time">Guardado el ${fmtDateTime(log.ts)}</div></div>
+      <button class="reg-edit-btn" onclick="openReg(${di})">✏️ Editar</button>
+    </div>
+    <div class="macro-cmp">
+      ${mc('Calorías',log.kcal,m.kcal,' kcal')}
+      ${mc('Proteína',log.prot,m.prot,'g')}
+      ${mc('Grasas',log.fat,m.fat,'g')}
+      ${mc('Carbohidratos',log.carb,m.carb,'g')}
+      ${log.peso?`<div class="mc-card"><div class="mc-lbl">Peso corporal</div><div class="mc-val">${log.peso} kg</div><div class="mc-plan">Inicial: ${PROFILE.peso||'—'} kg</div></div>`:''}
+    </div>
+    ${log.mood?`<div class="reg-mood">${log.mood}</div>`:''}
+    ${log.notes?`<div class="reg-notes">"${log.notes}"</div>`:''}`;
+  sumEl.style.display='block';
+}
+function mkRegSection(di){
+  const d=PLAN[di],m=USER_MACROS,hasLog=!!getLog(di);
+  return `<div class="day-reg">
+    <button class="reg-open-btn" id="regbtn-${di}" style="${hasLog?'display:none':''}" onclick="openReg(${di})">📋 Registrar día · ${d.day} ${dayDate(CW,di)}</button>
+    <div class="reg-form-wrap" id="regform-${di}">
+      <div class="reg-form-title">📋 Registrar consumo · ${d.day} ${dayDate(CW,di)}</div>
+      <div class="reg-grid">
+        <div class="reg-field"><label>Calorías (kcal)</label><input type="number" id="rf-kcal-${di}" placeholder="Ej: ${m.kcal}"></div>
+        <div class="reg-field"><label>Proteína (g)</label><input type="number" id="rf-prot-${di}" placeholder="Ej: ${m.prot}"></div>
+        <div class="reg-field"><label>Grasas (g)</label><input type="number" id="rf-fat-${di}" placeholder="Ej: ${m.fat}"></div>
+        <div class="reg-field"><label>Carbohidratos (g)</label><input type="number" id="rf-carb-${di}" placeholder="Ej: ${m.carb}"></div>
+        <div class="reg-field"><label>Peso corporal (kg)</label><input type="number" id="rf-peso-${di}" step="0.1" placeholder="Ej: ${PROFILE.peso||'80.0'}"></div>
+        <div class="reg-field"><label>¿Cómo te sentiste?</label>
+          <select id="rf-mood-${di}"><option value="">Seleccionar...</option>
+            <option>💪 Excelente</option><option>😊 Bien</option><option>😐 Regular</option><option>😔 Mal</option><option>🤒 Enfermo</option>
+          </select></div>
+        <div class="reg-field full"><label>Notas del día</label>
+          <textarea id="rf-notes-${di}" placeholder="¿Comiste algo diferente? ¿Entrenaste? (opcional)"></textarea></div>
+      </div>
+      <div class="reg-actions">
+        <button class="reg-cancel-btn" onclick="cancelReg(${di})">Cancelar</button>
+        <button class="reg-save-btn" onclick="saveReg(${di})">💾 Guardar</button>
+      </div>
+    </div>
+    <div class="reg-sum-wrap" id="regsum-${di}"></div>
+  </div>`;
+}
+
+// ── RENDER DAY ───────────────────────────────────────────────────────────────
+function renderDay(di){
+  const d=PLAN[di],m=USER_MACROS,{t,done:dn}={t:totalDay(di).t,done:totalDay(di).d};
+  const pct=t>0?Math.round(dn/t*100):0;
+  let html=`<div class="day-wrap${di===0?' active':''}" id="day-${di}">
+    <div class="day-hdr">
+      <div class="day-title">${d.day} <span class="sub">· ${dayDate(CW,di)}</span></div>
+      <div class="day-macros">
+        <span><span class="dot k"></span>${m.kcal} kcal</span>
+        <span><span class="dot p"></span>P: ${m.prot}g</span>
+        <span><span class="dot g"></span>G: ${m.fat}g</span>
+        <span><span class="dot c"></span>C: ${m.carb}g</span>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-labels"><span>Progreso del día</span><span class="prog-pct" id="bar-lbl-${di}">${dn} de ${t} · ${pct}%</span></div>
+      <div class="prog-track"><div class="prog-bar" id="bar-${di}" style="width:${pct}%"></div></div>
+    </div>
+    <div class="meals-grid">`;
+  d.meals.forEach((m,mi)=>{
+    if(m.type==='variant'){
+      const vi=getVariant(di,mi),v=m.variants[vi],protKey=`${di}-${mi}-v${vi}-p`,ch=getChecks(),rec=ch[protKey],isChk=!!rec,prowId=`prow-${di}-${mi}`;
+      html+=`<div class="meal-card" id="meal-${di}-${mi}" style="--ca:${v.ca};--cb:${v.cb}">
+        <div class="meal-img"><div class="meal-emoji">${v.emoji}</div><div class="method-badge">${v.method}</div></div>
+        <div class="meal-body">
+          <div class="meal-cat">${m.name}</div><div class="meal-time">${m.time}</div>
+          <div class="variant-toggle">`;
+      m.variants.forEach((vv,vvi)=>{ html+=`<div class="vpill ${vvi===0?'especial':'comun'}${vvi===vi?' active':''}" onclick="switchVariant(${di},${mi},${vvi})">${vvi===0?'⭐':'🏠'} ${vv.tag}</div>`; });
+      html+=`</div><div class="cook-box"><div class="cook-label">Cómo preparar</div><div class="cook-text">${v.tip}</div></div>
+          <div class="items-list">
+            <div class="item-row prot-row${isChk?' checked':''}" id="${prowId}" onclick="toggleItem(${di},'${prowId}','${protKey}')">
+              <div class="chk"><span class="chk-icon">✓</span></div>
+              <span class="item-food">${v.pf}</span><span class="item-qty">${v.pq}</span>
+              <span class="kcal-tag">${v.pk} kcal</span>
+              <span class="ts-badge${isChk?' show':''}">${isChk?'⏱ '+fmtTime(rec.ts):''}</span>
+            </div>`;
+      m.sides.forEach((s,si)=>{ html+=mkRow(`srow-${di}-${mi}-${si}`,di,`${di}-${mi}-s${si}`,s.f,s.q,s.k); });
+      html+=`</div></div></div>`;
+    } else {
+      html+=`<div class="meal-card" style="--ca:${m.ca};--cb:${m.cb}">
+        <div class="meal-img"><div class="meal-emoji">${m.emoji}</div><div class="method-badge">${m.method}</div></div>
+        <div class="meal-body">
+          <div class="meal-cat">${m.name}</div><div class="meal-time">${m.time}</div>
+          <div class="cook-box"><div class="cook-label">Cómo preparar</div><div class="cook-text">${m.tip}</div></div>
+          <div class="items-list">`;
+      m.items.forEach((it,ii)=>{ html+=mkRow(`irow-${di}-${mi}-${ii}`,di,`${di}-${mi}-i${ii}`,it.f,it.q,it.k); });
+      html+=`</div></div></div>`;
+    }
+  });
+  html+=`</div>${mkRegSection(di)}</div>`;
+  return html;
+}
+
+// ── WEEK NAV ─────────────────────────────────────────────────────────────────
+let activeDay=0;
+function renderWeekNav(){
+  const range=weekRange(CW),pct=weekPct(CW);
+  let strip='';
+  for(let w=1;w<=CW;w++){
+    const p=weekPct(w),bc=p===100?'#16a34a':p>49?'#0f766e':p>0?'#b45309':'#2d6a4f';
+    strip+=`<div class="wpill${w===CW?' active':''}" onclick="gotoWeek(${w})">
+      <span class="wn">S${w}</span><div class="wb"><div class="wbf" style="width:${p}%;background:${bc}"></div></div>
+      <span class="wp">${p}%</span></div>`;
+  }
+  document.getElementById('week-nav').innerHTML=`
+    <div class="wnav-row">
+      <button class="wnav-btn${CW<=1?' disabled':''}" onclick="gotoWeek(${CW-1})">← Sem ${CW-1}</button>
+      <div class="wnav-center">
+        <div class="wnav-title">Semana <span>${CW}</span></div>
+        <div class="wnav-range">${range}</div>
+        <div class="wnav-overall">Progreso semana ${CW}: ${pct}%</div>
+      </div>
+      <button class="wnav-btn" onclick="gotoWeek(${CW+1})">Sem ${CW+1} →</button>
+    </div>
+    <div class="week-strip">${strip}</div>`;
+}
+function renderAllDays(){
+  const tabs=document.getElementById('tabs'),content=document.getElementById('content');
+  tabs.innerHTML=''; content.innerHTML='';
+  PLAN.forEach((d,di)=>{
+    const tab=document.createElement('div'); tab.className='tab'+(di===activeDay?' active':''); tab.id=`tab-${di}`;
+    const {t,d:dn}={t:totalDay(di).t,d:totalDay(di).d},pct=t>0?Math.round(dn/t*100):0;
+    tab.innerHTML=`${d.day}<span class="tdate">${dayDate(CW,di)}</span><span class="tdot" id="tdot-${di}" style="background:${pct===100?'#52b788':pct>0?'#f59e0b':'#1e293b'}"></span>`;
+    tab.onclick=()=>switchDay(di); tabs.appendChild(tab);
+    const wrap=document.createElement('div'); wrap.innerHTML=renderDay(di); content.appendChild(wrap);
+  });
+  PLAN.forEach((_,di)=>{ if(getLog(di)) renderRegSum(di); });
+}
+function switchDay(idx){ activeDay=idx; PLAN.forEach((_,i)=>{ document.getElementById(`day-${i}`)?.classList.toggle('active',i===idx); document.getElementById(`tab-${i}`)?.classList.toggle('active',i===idx); }); }
+function gotoWeek(wk){ if(wk<1) return; CW=wk; STORE.cw=wk; uRef('nd/cw').set(wk); activeDay=0; renderWeekNav(); renderAllDays(); }
+
+// ── SECTION TOGGLE ────────────────────────────────────────────────────────────
+function showSection(s){
+  ['plan','inbody','perfil'].forEach(sec=>{
+    document.getElementById(`section-${sec}`).style.display=sec===s?(sec==='plan'?'block':'block'):'none';
+    const btn=document.getElementById(`snav-${sec}`); if(btn) btn.classList.toggle('active',sec===s);
+  });
+  if(s==='inbody') renderInBody();
+  if(s==='perfil') renderPerfil();
+}
+
+// ── INBODY ────────────────────────────────────────────────────────────────────
+function deleteIBEntry(id){
+  if(id===1){alert('La medición inicial no puede eliminarse.');return;}
+  if(!confirm('¿Eliminar esta medición?')) return;
+  saveIBHistory(getIBHistory().filter(e=>e.id!==id)); renderInBody();
+}
+function showIBForm(){ document.getElementById('ib-form').style.display='block'; document.getElementById('ib-add-btn').style.display='none'; }
+function hideIBForm(){ document.getElementById('ib-form').style.display='none'; document.getElementById('ib-add-btn').style.display='block'; }
+function saveIBEntry(){
+  const g=id=>document.getElementById(id).value;
+  const fecha=g('ibf-fecha'); if(!fecha){alert('Ingresa la fecha.');return;}
+  const entry={id:Date.now(),fecha,fechaLabel:(()=>{const d=new Date(fecha+'T12:00:00');return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;})(),tag:'seguimiento',
+    peso:parseFloat(g('ibf-peso'))||null,mme:parseFloat(g('ibf-mme'))||null,masaGrasa:parseFloat(g('ibf-grasa'))||null,pctGrasa:parseFloat(g('ibf-pctgrasa'))||null,
+    agua:parseFloat(g('ibf-agua'))||null,proteinas:parseFloat(g('ibf-prot'))||null,minerales:parseFloat(g('ibf-min'))||null,imc:parseFloat(g('ibf-imc'))||null,
+    rcc:parseFloat(g('ibf-rcc'))||null,metabolismo:parseFloat(g('ibf-meta'))||null,fitness:parseFloat(g('ibf-fit'))||null,nota:g('ibf-nota')};
+  const arr=getIBHistory(); arr.push(entry); saveIBHistory(arr); hideIBForm(); renderInBody();
+}
+function renderInBody(){
+  const entries=getIBHistory(),first=entries[0],last=entries[entries.length-1];
+  const initMG=first?.masaGrasa||null;
+  const goalFatLoss=initMG?initMG*0.4:null;
+  const fatLost=initMG&&last?.masaGrasa?Math.max(0,initMG-last.masaGrasa).toFixed(1):0;
+  const goalPct=goalFatLoss?Math.min(100,Math.round(fatLost/goalFatLoss*100)):0;
+  function metric(label,val,unit,prevVal,highlight){
+    const dval=prevVal!=null&&val!=null?(val-prevVal).toFixed(1):null;
+    const cls=dval===null?'':dval<0?'pos':dval>0?'neg':'neu';
+    return `<div class="ib-metric${highlight?' highlight':''}">
+      <div class="ml">${label}</div><div class="mv">${val!=null?val:'—'}<span class="mu"> ${unit}</span></div>
+      ${dval!==null?`<div class="mdelta ${cls}">${dval>=0?'+':''}${dval} vs anterior</div>`:''}
+    </div>`;
+  }
+  let entriesHTML='';
+  entries.slice().reverse().forEach((e,ri)=>{
+    const idx=entries.length-1-ri,prev=idx>0?entries[idx-1]:null;
+    entriesHTML+=`<div class="ib-entry${e.tag==='inicial'?' first-entry':''}">
+      <div class="ib-entry-hdr">
+        <div><div class="ib-entry-date">${e.fechaLabel}</div></div>
+        <div style="display:flex;align-items:center;gap:9px;">
+          <span class="ib-entry-tag tag-${e.tag}">${e.tag==='inicial'?'📍 Inicial':'📊 Seguimiento'}</span>
+          ${e.tag!=='inicial'?`<button class="ib-entry-del" onclick="deleteIBEntry(${e.id})">Eliminar</button>`:''}
+        </div>
+      </div>
+      <div class="ib-metrics">
+        ${metric('Peso',e.peso,'kg',prev?.peso)}${metric('% Grasa',e.pctGrasa,'%',prev?.pctGrasa,true)}
+        ${metric('Masa Grasa',e.masaGrasa,'kg',prev?.masaGrasa)}${metric('Músculo (MME)',e.mme,'kg',prev?.mme)}
+        ${metric('IMC',e.imc,'',prev?.imc)}${metric('RCC',e.rcc,'',prev?.rcc)}
+        ${metric('Agua corporal',e.agua,'kg',prev?.agua)}${metric('Metabolismo',e.metabolismo,'kcal',prev?.metabolismo)}
+      </div>
+      ${e.nota?`<div class="ib-entry-nota">"${e.nota}"</div>`:''}
+    </div>`;
+  });
+  let evoHTML='';
+  if(entries.length>=2){
+    const metrics=[{k:'peso',l:'Peso',u:'kg',good:'down'},{k:'pctGrasa',l:'% Grasa',u:'%',good:'down'},{k:'masaGrasa',l:'Masa Grasa',u:'kg',good:'down'},{k:'mme',l:'Músculo (MME)',u:'kg',good:'up'},{k:'imc',l:'IMC',u:'',good:'down'},{k:'metabolismo',l:'Metabolismo',u:'kcal',good:'up'}];
+    evoHTML=`<div class="ib-evo"><div class="ib-evo-title">📈 Evolución (inicial → última medición)</div>
+      <table class="ib-evo-table"><thead><tr><th>Métrica</th><th>Inicial</th><th>Última</th><th>Cambio</th></tr></thead><tbody>`;
+    metrics.forEach(m=>{
+      const ini=first[m.k],ult=last[m.k];
+      if(!ini||!ult){evoHTML+=`<tr><td>${m.l}</td><td>${ini||'—'} ${m.u}</td><td>${ult||'—'} ${m.u}</td><td style="color:#475569">—</td></tr>`;return;}
+      const d=(ult-ini).toFixed(1),sign=d>=0?'+':'',isGood=(m.good==='down'&&d<0)||(m.good==='up'&&d>0),color=isGood?'#52b788':d==0?'#64748b':'#f87171';
+      evoHTML+=`<tr><td>${m.l}</td><td>${ini} ${m.u}</td><td>${ult} ${m.u}</td><td style="color:${color};font-weight:600">${sign}${d} ${m.u}</td></tr>`;
+    });
+    evoHTML+=`</tbody></table></div>`;
+  }
+  const goalBar=goalFatLoss?`<div class="ib-goal">
+    <div class="ib-goal-item"><div class="ib-goal-val" style="color:#f87171">${initMG} kg</div><div class="ib-goal-lbl">Grasa inicial</div></div>
+    <div class="ib-goal-sep">→</div>
+    <div class="ib-goal-item"><div class="ib-goal-val" style="color:#52b788">${(initMG-goalFatLoss).toFixed(1)} kg</div><div class="ib-goal-lbl">Meta grasa</div></div>
+    <div class="ib-goal-sep">·</div>
+    <div class="goal-bar-wrap">
+      <div class="goal-bar-label"><span>Progreso hacia la meta</span><span style="color:#52b788;font-weight:600">${fatLost} / ${goalFatLoss.toFixed(1)} kg (${goalPct}%)</span></div>
+      <div class="goal-bar-track"><div class="goal-bar-fill" style="width:${goalPct}%"></div></div>
+    </div>
+  </div>`:entries.length===0?`<div class="ib-empty">Agrega tu primera medición InBody para ver el progreso hacia tu meta.</div>`:'';
+  document.getElementById('section-inbody').innerHTML=`
+    <div class="ib-header"><div class="ib-title">Historial <span>InBody</span></div>
+      <button class="ib-add-btn" id="ib-add-btn" onclick="showIBForm()">+ Nueva medición</button>
+    </div>
+    ${goalBar}
+    <div class="ib-form-wrap" id="ib-form">
+      <div class="ib-form-title">📊 Nueva medición InBody</div>
+      <div class="ib-form-grid">
+        <div class="ib-field"><label>Fecha</label><input type="date" id="ibf-fecha"></div>
+        <div class="ib-field"><label>Peso (kg)</label><input type="number" id="ibf-peso" step="0.1" placeholder="Ej: 82.0"></div>
+        <div class="ib-field"><label>Músculo MME (kg)</label><input type="number" id="ibf-mme" step="0.1" placeholder="Ej: 32.0"></div>
+        <div class="ib-field"><label>Masa Grasa (kg)</label><input type="number" id="ibf-grasa" step="0.1" placeholder="Ej: 22.0"></div>
+        <div class="ib-field"><label>% Grasa</label><input type="number" id="ibf-pctgrasa" step="0.1" placeholder="Ej: 26.0"></div>
+        <div class="ib-field"><label>Agua (kg)</label><input type="number" id="ibf-agua" step="0.1" placeholder="Ej: 42.0"></div>
+        <div class="ib-field"><label>Proteínas (kg)</label><input type="number" id="ibf-prot" step="0.1" placeholder="Ej: 12.0"></div>
+        <div class="ib-field"><label>Minerales (kg)</label><input type="number" id="ibf-min" step="0.01" placeholder="Ej: 3.80"></div>
+        <div class="ib-field"><label>IMC</label><input type="number" id="ibf-imc" step="0.1" placeholder="Ej: 28.0"></div>
+        <div class="ib-field"><label>RCC</label><input type="number" id="ibf-rcc" step="0.01" placeholder="Ej: 0.90"></div>
+        <div class="ib-field"><label>Metabolismo (kcal)</label><input type="number" id="ibf-meta" placeholder="Ej: 1700"></div>
+        <div class="ib-field"><label>Estado fitness (pts)</label><input type="number" id="ibf-fit" placeholder="Ej: 70"></div>
+        <div class="ib-field full"><label>Nota (opcional)</label><textarea id="ibf-nota" placeholder="¿Algo relevante de esta medición?"></textarea></div>
+      </div>
+      <div class="ib-form-actions">
+        <button class="ib-cancel" onclick="hideIBForm()">Cancelar</button>
+        <button class="ib-save" onclick="saveIBEntry()">💾 Guardar medición</button>
+      </div>
+    </div>
+    ${evoHTML}
+    <div class="ib-entries">${entriesHTML.length?entriesHTML:'<div class="ib-empty">Aún no hay mediciones InBody registradas.</div>'}</div>`;
+}
+
+// ── PERFIL ─────────────────────────────────────────────────────────────────────
+function renderPerfil(){
+  const p=PROFILE,m=USER_MACROS;
+  const actLabels={sed:'Sedentario',light:'Ligeramente activo',mod:'Moderadamente activo',active:'Muy activo'};
+  const objLabels={bajar:'Bajar grasa',mantener:'Mantener',ganar:'Ganar músculo'};
+  document.getElementById('section-perfil').innerHTML=`
+    <div class="prf-card">
+      <div class="prf-title">👤 Mi perfil</div>
+      <div class="prf-grid">
+        <div class="prf-field full"><label>Nombre</label><input type="text" id="prf-nombre" value="${p.nombre||''}"></div>
+        <div class="prf-field"><label>Edad</label><input type="number" id="prf-edad" value="${p.edad||''}"></div>
+        <div class="prf-field"><label>Sexo</label>
+          <select id="prf-sexo"><option value="M"${p.sexo==='M'?' selected':''}>Masculino</option><option value="F"${p.sexo==='F'?' selected':''}>Femenino</option></select></div>
+        <div class="prf-field"><label>Peso actual (kg)</label><input type="number" id="prf-peso" step="0.1" value="${p.peso||''}"></div>
+        <div class="prf-field"><label>Altura (cm)</label><input type="number" id="prf-altura" value="${p.altura||''}"></div>
+        <div class="prf-field full"><label>Nivel de actividad</label>
+          <select id="prf-actividad">
+            <option value="sed"${p.actividad==='sed'?' selected':''}>Sedentario</option>
+            <option value="light"${p.actividad==='light'?' selected':''}>Ligeramente activo</option>
+            <option value="mod"${p.actividad==='mod'?' selected':''}>Moderadamente activo</option>
+            <option value="active"${p.actividad==='active'?' selected':''}>Muy activo</option>
+          </select></div>
+        <div class="prf-field full"><label>Objetivo</label>
+          <select id="prf-objetivo">
+            <option value="bajar"${p.objetivo==='bajar'?' selected':''}>Bajar grasa corporal</option>
+            <option value="mantener"${p.objetivo==='mantener'?' selected':''}>Mantener peso</option>
+            <option value="ganar"${p.objetivo==='ganar'?' selected':''}>Ganar masa muscular</option>
+          </select></div>
+        <div class="prf-field"><label>Músculo MME (kg)</label><input type="number" id="prf-mme" step="0.1" value="${p.mme||''}"></div>
+        <div class="prf-field"><label>Fecha inicio plan</label><input type="date" id="prf-inicio" value="${p.inicio||''}"></div>
+      </div>
+      <button class="prf-save-btn" onclick="updatePerfil()">💾 Actualizar perfil y recalcular</button>
+    </div>
+    <div style="background:#1a1f2e;border:1px solid #2a2f3e;border-radius:14px;padding:18px 20px;margin-top:16px;">
+      <div style="font-size:0.85rem;font-weight:700;color:#52b788;margin-bottom:12px;">📊 Tus metas actuales</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;">
+        ${[['Calorías',m.kcal,'kcal/día','#52b788'],['Proteína',m.prot,'g/día','#60a5fa'],['Grasas',m.fat,'g/día','#f59e0b'],['Carbohidratos',m.carb,'g/día','#a78bfa'],['TDEE',m.tdee||'—','kcal mant.','#94a3b8']].map(([l,v,u,c])=>`
+        <div style="background:#0f1117;border-radius:9px;padding:10px 12px;border:1px solid #1e293b;">
+          <div style="font-size:0.6rem;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">${l}</div>
+          <div style="font-size:1.1rem;font-weight:700;color:${c};">${v}</div>
+          <div style="font-size:0.66rem;color:#475569;">${u}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+function updatePerfil(){
+  const g=id=>document.getElementById(id)?.value;
+  PROFILE.nombre=g('prf-nombre'); PROFILE.edad=g('prf-edad'); PROFILE.sexo=g('prf-sexo');
+  PROFILE.peso=g('prf-peso'); PROFILE.altura=g('prf-altura');
+  PROFILE.actividad=g('prf-actividad'); PROFILE.objetivo=g('prf-objetivo');
+  PROFILE.mme=g('prf-mme'); PROFILE.inicio=g('prf-inicio');
+  USER_MACROS=calcMacros(PROFILE);
+  if(PROFILE.inicio) START=new Date(PROFILE.inicio+'T12:00:00');
+  uRef('profile').set(PROFILE);
+  updateHeader();
+  renderPerfil();
+  renderWeekNav();
+  renderAllDays();
+  showSection('plan');
+}
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+function saveOnboarding(){
+  const g=id=>document.getElementById(id)?.value;
+  const nombre=g('onb-nombre'),peso=g('onb-peso'),altura=g('onb-altura'),edad=g('onb-edad');
+  if(!nombre||!peso||!altura||!edad){ document.getElementById('onb-err').style.display='block'; return; }
+  document.getElementById('onb-err').style.display='none';
+  const today=new Date().toISOString().split('T')[0];
+  PROFILE={nombre,edad,sexo:g('onb-sexo'),peso,altura,actividad:g('onb-actividad'),objetivo:g('onb-objetivo'),mme:g('onb-mme')||null,inicio:today};
+  USER_MACROS=calcMacros(PROFILE);
+  START=new Date(today+'T12:00:00');
+  const hasIB=g('onb-masagrasa')||g('onb-mme')||g('onb-pctgrasa');
+  if(hasIB){
+    const ibEntry={id:Date.now(),fecha:today,fechaLabel:(()=>{const d=new Date(today+'T12:00:00');return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;})(),tag:'inicial',
+      peso:parseFloat(peso),mme:parseFloat(g('onb-mme'))||null,masaGrasa:parseFloat(g('onb-masagrasa'))||null,
+      pctGrasa:parseFloat(g('onb-pctgrasa'))||null,metabolismo:parseFloat(g('onb-metabolismo'))||null,nota:'Medición inicial al comenzar el plan'};
+    STORE.inbody={[`e${ibEntry.id}`]:ibEntry};
+    uRef('nd/inbody').set(STORE.inbody);
+  }
+  uRef('profile').set(PROFILE);
+  document.getElementById('nd-onboarding').style.display='none';
+  updateHeader();
+  renderWeekNav();
+  renderAllDays();
+  showSection('plan');
+}
+
+// ── HEADER ────────────────────────────────────────────────────────────────────
+function updateHeader(){
+  const m=USER_MACROS;
+  document.getElementById('hdr-sub').textContent=`${PROFILE.nombre||'Usuario'} · desde ${PROFILE.inicio||'—'}`;
+  document.getElementById('hdr-meta').textContent=`Meta: ${m.kcal} kcal · P:${m.prot}g · G:${m.fat}g · C:${m.carb}g`;
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="stat"><div class="val">${m.kcal}</div><div class="lbl">kcal / día</div></div>
+    <div class="stat p"><div class="val">${m.prot}g</div><div class="lbl">Proteína</div></div>
+    <div class="stat g"><div class="val">${m.fat}g</div><div class="lbl">Grasas</div></div>
+    <div class="stat c"><div class="val">${m.carb}g</div><div class="lbl">Carbos</div></div>
+    <div class="stat"><div class="val">${PROFILE.objetivo==='bajar'?'−500':PROFILE.objetivo==='ganar'?'+300':'0'}</div><div class="lbl">Déficit/Superávit</div></div>
+    <div class="stat"><div class="val">3 L</div><div class="lbl">Agua mínima</div></div>`;
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function signInWithGoogle(){ AUTH.signInWithPopup(GPROVIDER).catch(()=>{ document.getElementById('nd-login-err').style.display='block'; }); }
+function signOut(){ AUTH.signOut(); }
+
+const authTimeout=setTimeout(()=>{
+  document.getElementById('nd-loading').style.display='none';
+  document.getElementById('nd-login').style.display='flex';
+},5000);
+
+AUTH.onAuthStateChanged(async user=>{
+  clearTimeout(authTimeout);
+  if(!user){
+    document.getElementById('nd-login').style.display='flex';
+    document.getElementById('nd-loading').style.display='none';
+    document.getElementById('nd-onboarding').style.display='none';
+    return;
+  }
+  UID=user.uid;
+  document.getElementById('nd-login').style.display='none';
+  document.getElementById('nd-loading').style.display='flex';
+  try{
+    const dbTimeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),6000));
+    const snap=await Promise.race([DB.ref(`users/${UID}`).once('value'),dbTimeout]);
+    const data=snap.val()||{};
+    PROFILE=data.profile||{};
+    STORE.cw=data.nd?.cw||1;
+    STORE.weeks=data.nd?.weeks||{};
+    STORE.inbody=data.nd?.inbody||{};
+    CW=STORE.cw;
+    if(PROFILE.inicio) START=new Date(PROFILE.inicio+'T12:00:00');
+    USER_MACROS=Object.keys(PROFILE).length?calcMacros(PROFILE):{kcal:1900,prot:150,fat:55,carb:180,tdee:2400};
+  }catch(e){
+    console.warn('Error cargando datos:',e.message);
+    PROFILE={}; STORE={cw:1,weeks:{},inbody:{}}; CW=1;
+  }
+  document.getElementById('nd-loading').style.display='none';
+  if(!PROFILE.nombre){
+    document.getElementById('nd-onboarding').style.display='flex';
+    return;
+  }
+  updateHeader();
+  renderWeekNav();
+  renderAllDays();
+});
+</script>
+</body>
+</html>
