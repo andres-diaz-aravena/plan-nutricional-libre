@@ -283,6 +283,13 @@ header h1 span{color:#52b788;}
   .ib-metrics{grid-template-columns:1fr 1fr;}
   .macro-cmp{grid-template-columns:1fr 1fr;}
 }
+.nd-sep{color:#334155;font-size:0.75rem;margin:14px 0 4px;text-align:center;}
+.nd-guest-btn{margin-top:4px;background:transparent;border:1px solid #2a2f3e;color:#64748b;border-radius:12px;padding:11px 20px;font-size:0.86rem;font-family:inherit;cursor:pointer;width:100%;transition:all .2s;}
+.nd-guest-btn:hover{border-color:#475569;color:#94a3b8;background:#0f1117;}
+.guest-banner{background:#1e1b4b;border-bottom:1px solid #3730a3;padding:7px 20px;display:none;align-items:center;justify-content:space-between;gap:10px;font-size:0.75rem;flex-wrap:wrap;}
+.guest-banner-txt{color:#a78bfa;font-weight:600;}
+.guest-banner-exit{background:transparent;border:1px solid #4338ca;color:#818cf8;border-radius:6px;padding:3px 10px;font-size:0.72rem;font-family:inherit;cursor:pointer;transition:all .2s;}
+.guest-banner-exit:hover{background:#3730a3;color:#e0e7ff;}
 </style>
 </head>
 <body>
@@ -302,6 +309,8 @@ header h1 span{color:#52b788;}
       Continuar con Google
     </button>
     <div class="nd-login-err" id="nd-login-err">Error al iniciar sesión. Intenta de nuevo.</div>
+    <div class="nd-sep">— o —</div>
+    <button class="nd-guest-btn" onclick="loginAsGuest()">👀 Ver como invitado</button>
   </div>
 </div>
 
@@ -368,6 +377,11 @@ header h1 span{color:#52b788;}
 
 <div class="stats" id="stats-bar"></div>
 
+<div class="guest-banner" id="guest-banner">
+  <span class="guest-banner-txt">👀 Modo invitado — los cambios no se guardan</span>
+  <button class="guest-banner-exit" onclick="exitGuest()">Salir del modo invitado</button>
+</div>
+
 <div class="section-nav">
   <div class="snav active" id="snav-plan" onclick="showSection('plan')">📅 Plan Semanal</div>
   <div class="snav inbody-tab" id="snav-inbody" onclick="showSection('inbody')">📊 InBody</div>
@@ -400,8 +414,10 @@ let PROFILE={};
 let USER_MACROS={kcal:1900,prot:150,fat:55,carb:180};
 let CW=1;
 let START=new Date();
+let GUEST_MODE=false;
 
-function uRef(path){ return DB.ref(`users/${UID}/${path}`); }
+const _noop={set:()=>{},once:()=>Promise.resolve({val:()=>null})};
+function uRef(path){ return GUEST_MODE?_noop:DB.ref(`users/${UID}/${path}`); }
 function _wk(){ if(!STORE.weeks[`w${CW}`]) STORE.weeks[`w${CW}`]={}; return STORE.weeks[`w${CW}`]; }
 function getChecks(){ return _wk().chk||{}; }
 function saveChecks(o){ _wk().chk=o; uRef(`nd/weeks/w${CW}/chk`).set(o); }
@@ -981,15 +997,37 @@ function updateHeader(){
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 function signInWithGoogle(){ AUTH.signInWithPopup(GPROVIDER).catch(()=>{ document.getElementById('nd-login-err').style.display='block'; }); }
-function signOut(){ AUTH.signOut(); }
+function signOut(){ if(GUEST_MODE){exitGuest();return;} AUTH.signOut(); }
 
-const authTimeout=setTimeout(()=>{
+function loginAsGuest(){
+  GUEST_MODE=true;
+  clearTimeout(authTimer);
+  const today=new Date().toISOString().split('T')[0];
+  PROFILE={nombre:'Invitado/a',edad:'30',sexo:'M',peso:'82',altura:'175',actividad:'mod',objetivo:'bajar',mme:'',inicio:today};
+  USER_MACROS=calcMacros(PROFILE);
+  START=new Date(today+'T12:00:00');
+  STORE={cw:1,weeks:{},inbody:{}};CW=1;
+  document.getElementById('nd-login').style.display='none';
+  document.getElementById('nd-loading').style.display='none';
+  document.getElementById('guest-banner').style.display='flex';
+  updateHeader();renderWeekNav();renderAllDays();showSection('plan');
+}
+function exitGuest(){
+  GUEST_MODE=false;
+  PROFILE={};USER_MACROS={kcal:1900,prot:150,fat:55,carb:180};
+  STORE={cw:1,weeks:{},inbody:{}};CW=1;
+  document.getElementById('guest-banner').style.display='none';
+  document.getElementById('nd-login').style.display='flex';
+}
+
+let authTimer=setTimeout(()=>{
   document.getElementById('nd-loading').style.display='none';
   document.getElementById('nd-login').style.display='flex';
 },5000);
 
 AUTH.onAuthStateChanged(async user=>{
-  clearTimeout(authTimeout);
+  if(GUEST_MODE) return;
+  clearTimeout(authTimer);
   if(!user){
     document.getElementById('nd-login').style.display='flex';
     document.getElementById('nd-loading').style.display='none';
